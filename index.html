@@ -39,8 +39,8 @@ function toDataURL(url, callback) {
 }
 
 function testButton() {
-toDataURL('https://magenta.github.io/magenta-js/music/demos/melody.mid', function(dataUrl) {loadURLFile("test", dataUrl);
-                      console.log('RESULT:', dataUrl);
+toDataURL("https://raw.githubusercontent.com/kastnerkyle/quick_dirty_midi_html_player/main/seed_quartet_850.mid", function(dataUrl) {loadURLFile("seed_850.mid", dataUrl);
+                      //console.log('RESULT:', dataUrl);
    });
 };
 
@@ -87,6 +87,8 @@ function playSong(name) {
             };
         }
     });
+    document.getElementById('playfile').innerHTML = "Now playing: " + name
+    currentSong = name;
 	var startingPoint = MIDI.getContext().currentTime;
 
 	var vol1 = document.getElementById('slider1').value;
@@ -110,8 +112,7 @@ function playSong(name) {
     document.getElementById('scrollbar').style.transitionDuration = null;
     document.getElementById('scrollbar').style.left = 5 + "px";
     //reflow
-
-    var w = document.getElementById('myPianoRollVisualizer').offsetWidth;
+    document.getElementById('myPianoRollVisualizer').offsetWidth;
 
     MIDI.Player.loadFile(songs[name])
     var dur = MIDI.Player.endTime / 1000;
@@ -250,6 +251,18 @@ function sliderChange5(val) {
 function loadDefaultPlaylist() {
     testButton();
 }
+function stopAudio() {
+    document.getElementById('scrollbar').style.animation = "none";
+    document.getElementById('scrollbar').style.transitionTimingFunction = null;
+    document.getElementById('scrollbar').style.transitionDuration = null;
+    document.getElementById('scrollbar').style.left = 5 + "px";
+    //reflow
+    document.getElementById('myPianoRollVisualizer').offsetWidth;
+    MIDI.Player.stop();
+}
+function startAudio() {
+    playSong(currentSong);
+}
 
 </script>
 
@@ -269,27 +282,35 @@ function loadDefaultPlaylist() {
 
 <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
 
+<div style="height:20px"></div>
+<div>
+<button onclick="startAudio()">Play</button>
+<button onclick="stopAudio()">Stop</button>
+<div id="playfile" style="height:25px">Now playing: </div>
+</div>
+
+<div style="height:20px"></div>
 <div id="controls">
     <div id="control-buttons">
         <span id="play-btn" onclick="changeState('play')"></span>
         <span id="pause-btn" onclick="changeState('pause')"></span>
+<output id="output1" style="display:inline-block"></output>
        <input id="slider1" type="range" min="0" max="120" step="1" oninput="sliderChange1(this.value)">
-<output id="output1"></output>
+<output id="output2" style="display:inline-block"></output>
        <input id="slider2" type="range" min="0" max="120" step="1" oninput="sliderChange2(this.value)">
-<output id="output2"></output>
+<output id="output3" style="display:inline-block"></output>
        <input id="slider3" type="range" min="0" max="120" step="1" oninput="sliderChange3(this.value)">
-<output id="output3"></output>
+<output id="output4" style="display:inline-block"></output>
        <input id="slider4" type="range" min="0" max="120" step="1" oninput="sliderChange4(this.value)">
-<output id="output4"></output>
-       <p>Volume controls (SATB order) are not dynamic - re-click the song name to restart play with the new volume</p>
+       <div style="display:inline-block">Volume controls (SATB order)</div>
     </div>
     <div id="control-buttons">
-       <input id="slider5" type="range" min="40" max="160" step="1" oninput="sliderChange5(this.value)">
-<output id="output5"></output>
-       <p>Playback speed (default 90)</p>
+		<output id="output5" style="display:inline-block"></output>
+        <input id="slider5" type="range" min="40" max="160" step="1" oninput="sliderChange5(this.value)">
+        <div style="display:inline-block">Playback speed (default 90)</div>
     </div>
 </div>
-<div style="height:40px"></div>
+<div style="height:20px"></div>
 <div id="playlist" class="panel">
     <div class="container">
         <button onclick="loadDefaultPlaylist()">Load default playlist</button>
@@ -311,4 +332,11 @@ div {
 	position: absolute;
 	left: var(--leftStart);
 } 
+.playlist-list-item {
+  text-decoration: none;
+  color: black;
+}
+.playlist-list-item:hover {
+  font-weight: 900;
+}
 </style>
