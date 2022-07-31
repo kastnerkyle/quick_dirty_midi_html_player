@@ -26,8 +26,7 @@ var currentSong = "";
 
 // File Uploading
 function handleFileSelect(evt) {
-    var files = evt.target.files;
-    for (var i = 0, f; f = files[i]; i++) {
+    var files = evt.target.files; for (var i = 0, f; f = files[i]; i++) {
         if (!(f.type.match('audio/midi') || f.type.match('audio/mid'))) {
             console.log("Invalid: " + f.type);
             alert("Only MIDI files are allowed");
@@ -69,7 +68,46 @@ function playSong(name) {
 	MIDI.setVolume(2, vol3, 0);
 	MIDI.setVolume(3, vol4, 0);
 
-    MIDI.Player.loadFile(songs[name], function() { currentSong = name; changeState("start") });
+	var bpm = document.getElementById('slider5').value;
+
+    document.getElementById('myPianoRollVisualizer').src = songs[name];
+    //document.getElementById('myStaffVisualizer').src = songs[name];
+    MIDI.Player.BPM = bpm;
+
+    document.getElementById('scrollbar').style.animation = "none";
+    document.getElementById('scrollbar').style.transitionTimingFunction = null;
+    document.getElementById('scrollbar').style.transitionDuration = null;
+    document.getElementById('scrollbar').style.left = 5 + "px";
+    //reflow
+
+    var w = document.getElementById('myPianoRollVisualizer').offsetWidth;
+
+    MIDI.Player.loadFile(songs[name])
+    var dur = MIDI.Player.endTime / 1000;
+
+    //document.getElementById('scrollbar').style.transitionDuration = (w/pixPerSec) + "s"
+    //document.getElementById('scrollbar').style.animationTimingFunction = "linear";
+
+    document.getElementById('scrollbar').style.animation = "none";
+    document.getElementById('scrollbar').style.transitionTimingFunction = "linear ";
+    document.getElementById('scrollbar').style.transitionDuration = dur + "s"
+
+    //MIDI.Player.loadFile(songs[name], function() { currentSong = name; changeState("start") });
+	//for(var e = 0; e < MIDI.Player.data.length; e++)
+	//{
+	//	var currentEvent = MIDI.Player.data[e][0].event;
+    //  console.log(currentEvent);
+								
+		//if(currentEvent.subtype == "programChange") currentEvent.programNumber = 0;
+		//currentEvent.channel = 0;
+	//};
+    // default pixelsPerTimestep = 30
+    // approximately bpm invariant "duration"
+    var invar_dur = dur / (90 / bpm)
+    var invar_pix = invar_dur * 30 + 5
+    document.getElementById('scrollbar').style.left = invar_pix + "px";
+
+    changeState("start");
 }
 
 // Some stuff for cleaner play/pause
@@ -98,7 +136,6 @@ function changeState(state) {
 		};
 					
 		MIDI.Player.replayer.getData = function() { return clone(MIDI.Player.data); }
-
         MIDI.Player.start();
 
         $("#play-btn").hide();
@@ -132,10 +169,16 @@ function changeState(state) {
 // Start JS things when page ready
 $(document).ready( function() {
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
-	document.getElementById('slider1').value = 80;
+    sliderChange1(90)
+    sliderChange2(80)
+    sliderChange3(80)
+    sliderChange4(85)
+    sliderChange5(90)
+	document.getElementById('slider1').value = 90;
 	document.getElementById('slider2').value = 80;
 	document.getElementById('slider3').value = 80;
-	document.getElementById('slider4').value = 80;
+	document.getElementById('slider4').value = 85;
+	document.getElementById('slider5').value = 90;
 
     // set to piano by default
     MIDI.loadPlugin({
@@ -170,7 +213,27 @@ function sliderChange3(val) {
 function sliderChange4(val) {
     document.getElementById('output4').innerHTML = val;
 }
+function sliderChange5(val) {
+    document.getElementById('output5').innerHTML = val;
+}
+
 </script>
+
+
+<div id="progress">
+<div id="scrollbar" class="vertical"></div>
+</div>
+<div id="viz">
+<midi-visualizer type="piano-roll" id="myPianoRollVisualizer" 
+  src="">
+</midi-visualizer>
+
+<!midi-visualizer type="staff" id="myStaffVisualizer" 
+  src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid">
+<!/midi-visualizer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
 
 <div id="controls">
     <div id="control-buttons">
@@ -184,11 +247,18 @@ function sliderChange4(val) {
 <output id="output3"></output>
        <input id="slider4" type="range" min="0" max="120" step="1" oninput="sliderChange4(this.value)">
 <output id="output4"></output>
-       <p>Controls (SATB order) are not dynamic - re-click the song name to restart play with the new volume, parts, etc</p>
+       <p>Volume controls (SATB order) are not dynamic - re-click the song name to restart play with the new volume</p>
+    </div>
+    <div id="control-buttons">
+       <input id="slider5" type="range" min="40" max="160" step="1" oninput="sliderChange5(this.value)">
+<output id="output5"></output>
+       <p>Playback speed (default 90)</p>
     </div>
 </div>
-<script>
-</script>
+<div></div>
+<div></div>
+<div></div>
+<div></div>
 <div id="playlist" class="panel">
     <div class="container">
         <input type="file" id="files" name="files" multiple />
@@ -197,3 +267,16 @@ function sliderChange4(val) {
         </div>
     </div>
 </div>
+
+<style>
+div {
+    animation-timing-function: linear;
+}
+.vertical { 
+	--leftStart: 0%;
+	border-left: 1px solid gray; 
+	height: 235px; 
+	position: absolute;
+	left: var(--leftStart);
+} 
+</style>
