@@ -24,14 +24,34 @@ var playState = "init";
 var songs = {};
 var currentSong = "";
 
-// File Uploading
-function handleFileSelect(evt) {
-    var files = evt.target.files; for (var i = 0, f; f = files[i]; i++) {
-        if (!(f.type.match('audio/midi') || f.type.match('audio/mid'))) {
-            console.log("Invalid: " + f.type);
-            alert("Only MIDI files are allowed");
-            continue;
-        }
+function toDataURL(url, callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    var reader = new FileReader();
+    reader.onloadend = function() {
+      callback(reader.result);
+    }
+    reader.readAsDataURL(xhr.response);
+  };
+  xhr.open('GET', url);
+  xhr.responseType = 'blob';
+  xhr.send();
+}
+
+function testButton() {
+toDataURL('https://magenta.github.io/magenta-js/music/demos/melody.mid', function(dataUrl) {loadURLFile("test", dataUrl);
+                      console.log('RESULT:', dataUrl);
+   });
+};
+
+function loadURLFile(name, fURL) {
+    if(songs[escape(name)]) return;
+    songs[escape(name)] = fURL;
+    $("#playlist-list").append("<div class=\"playlist-list-item\" onclick=\"playSong('" + escape(name) + "')\"><span class=\"fa-play-circle\"></span> " + escape(name) + "</div>");
+};
+
+function loadLocalFile(f) {
+        console.log(f);
         var reader = new FileReader();
         reader.onload = (function(theFile) {
             return function(e) {
@@ -41,6 +61,17 @@ function handleFileSelect(evt) {
             };
         })(f);
         reader.readAsDataURL(f);
+};
+
+// File Uploading
+function handleFileSelect(evt) {
+    var files = evt.target.files; for (var i = 0, f; f = files[i]; i++) {
+        if (!(f.type.match('audio/midi') || f.type.match('audio/mid'))) {
+            console.log("Invalid: " + f.type);
+            alert("Only MIDI files are allowed");
+            continue;
+        }
+        loadLocalFile(f);
     }
 }
 
@@ -216,6 +247,9 @@ function sliderChange4(val) {
 function sliderChange5(val) {
     document.getElementById('output5').innerHTML = val;
 }
+function loadDefaultPlaylist() {
+    testButton();
+}
 
 </script>
 
@@ -223,7 +257,7 @@ function sliderChange5(val) {
 <div id="progress">
 <div id="scrollbar" class="vertical"></div>
 </div>
-<div id="viz">
+<div id="viz" style="height:255px">
 <midi-visualizer type="piano-roll" id="myPianoRollVisualizer" 
   src="">
 </midi-visualizer>
@@ -255,15 +289,13 @@ function sliderChange5(val) {
        <p>Playback speed (default 90)</p>
     </div>
 </div>
-<div></div>
-<div></div>
-<div></div>
-<div></div>
+<div style="height:40px"></div>
 <div id="playlist" class="panel">
     <div class="container">
+        <button onclick="loadDefaultPlaylist()">Load default playlist</button>
         <input type="file" id="files" name="files" multiple />
         <div id="playlist-list">
-            <p id="playlist-list-empty"><i>Click the filename in the list (once loaded) to start playing</i></p>
+            <p id="playlist-list-empty"><i>Click the filename in the list below (once loaded) to start playing</i></p>
         </div>
     </div>
 </div>
